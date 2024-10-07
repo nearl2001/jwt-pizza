@@ -32,8 +32,6 @@ test('purchase with login', async ({ page }) => {
 
   // Check balance
   await expect(page.getByText('0.008')).toBeVisible();
-
-  await page.close()
 });
 
 test('login then logout', async ({ page }) => {
@@ -57,14 +55,12 @@ test('login then logout', async ({ page }) => {
   await expect(page.getByRole('main')).toContainText('Kai Chen');
   await expect(page.getByRole('main')).toContainText('d@jwt.com');
 
+
   // Log Out
   await page.getByRole('link', { name: 'Logout' }).click();
   await page.waitForURL('http://localhost:5173/');
 
-  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');
-   
-  await page.close(); 
-  
+  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');  
 });
 
 async function setUpServiceMock(page) {

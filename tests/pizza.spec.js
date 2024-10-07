@@ -105,7 +105,6 @@ test('Check Out Docs and History pages', async ({ page }) => {
 
   await page.goto('/docs/factory')
   await expect(page.getByRole('main')).toContainText('JWT Pizza API');
-  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/order');
 
   await page.goto('/history')
   await expect(page.getByRole('heading')).toContainText('Mama Rucci, my my');

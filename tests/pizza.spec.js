@@ -100,13 +100,60 @@ test('Register New User', async ({page}) => {
   await expect(page.locator('#navbar-dark')).toContainText('Logout');
 })
 
-test('Check Out Docs pages', async ({page}) => {
+test('Check Out Docs and History pages', async ({page}) => {
   await setUpServiceMock(page)
 
-  await page.goto('http://localhost:5173/docs/factory')
+  await page.goto('/docs/factory')
   await expect(page.getByRole('main')).toContainText('JWT Pizza API');
   await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/order');
+
+  await page.goto('/history')
+  await expect(page.getByRole('heading')).toContainText('Mama Rucci, my my');
+  await expect(page.getByRole('main')).toContainText('However, it was the Romans who truly popularized pizza');
 })
+
+test('admin functionality', async ({page}) => {
+  await setUpServiceMock(page)
+
+  await page.goto('/')
+
+  // Franchise Base Page
+  await page.goto('/franchise-dashboard')
+  await expect(page.getByRole('main')).toContainText('So you want a piece of the pie?');
+  await expect(page.getByRole('main')).toContainText('Unleash Your Potential');
+  await page.getByRole('link', { name: 'login', exact: true }).click();
+
+  // Login
+  await page.getByPlaceholder('Email address').click();
+  await page.getByPlaceholder('Email address').fill('d@jwt.com');
+  await page.getByPlaceholder('Email address').press('Tab');
+  await page.getByPlaceholder('Password').fill('a');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page.getByRole('link', { name: 'KC' })).toBeVisible();
+
+  // Admin Page First Visit
+  await expect(page.locator('#navbar-dark')).toContainText('Admin');
+  await page.goto('/admin-dashboard');
+  await page.waitForTimeout(500);
+  await page.reload();
+
+  await expect(page.getByRole('heading')).toContainText('Mama Ricci\'s kitchen');
+  await expect(page.getByRole('main')).toContainText('Keep the dough rolling and the franchises signing up.');
+
+  // Close a Store
+  await page.goto('http://localhost:5173/admin-dashboard/close-franchise');
+  await expect(page.getByRole('table')).toContainText('Close');
+  await page.getByRole('row', { name: 'Spanish Fork 100 ₿ Close' }).getByRole('button').click();
+  await expect(page.getByRole('main')).toContainText('Are you sure you want to close the PizzaCorp store Spanish Fork ?');
+  await page.getByRole('button', { name: 'Close' }).click();
+
+  // Close a Franchise
+  await page.goto('/admin-dashboard');
+  await page.getByRole('row', { name: 'PizzaCorp Close' }).getByRole('button').click();
+  await expect(page.getByRole('main')).toContainText('Are you sure you want to close the PizzaCorp franchise?');
+  await page.getByRole('button', { name: 'Close' }).click();
+});
+
 
 // -------------------- Helper Functions --------------------
 
@@ -126,21 +173,30 @@ async function setUpServiceMock(page) {
         id: 2,
         name: 'LotaPizza',
         stores: [
-          { id: 4, name: 'Lehi' },
-          { id: 5, name: 'Springville' },
-          { id: 6, name: 'American Fork' },
+          { id: 4, name: 'Lehi', totalRevenue: 100 },
+          { id: 5, name: 'Springville', totalRevenue: 100 },
+          { id: 6, name: 'American Fork', totalRevenue: 100 },
         ],
+        admins: []
       },
-      { id: 3, name: 'PizzaCorp', stores: [{ id: 7, name: 'Spanish Fork' }] },
-      { id: 4, name: 'topSpot', stores: [] },
+      { id: 3, name: 'PizzaCorp', stores: [{ id: 7, name: 'Spanish Fork', totalRevenue: 100 }], admins: [] },
+      // { id: 4, name: 'topSpot', stores: [] },
     ];
     expect(route.request().method()).toBe('GET');
     await route.fulfill({ json: franchiseRes });
   });
 
+  await page.route('/.*\/api\/franchise\/(.+)/', async (route) => {
+    const userFranchiseRes = [{ id: 2, name: 'pizzaPocket', admins: [{ id: 4, name: 'pizza franchisee', email: 'f@jwt.com' }], stores: [{ id: 4, name: 'SLC', totalRevenue: 0 }] }]
+    const userId = route.request().url().split('/').pop();
+
+    userFranchiseRes[0].id = userId;
+    await route.fulfill({ json: userFranchiseRes});
+  })
+
   await page.route('*/**/api/auth', async (route) => {
     const loginReq = { email: 'd@jwt.com', password: 'a' };
-    const loginRes = { user: { id: 3, name: 'Kai Chen', email: 'd@jwt.com', roles: [{ role: 'diner' }] }, token: 'abcdef' };
+    const loginRes = { user: { id: 3, name: 'Kai Chen', email: 'd@jwt.com', roles: [{ role: 'admin' }] }, token: 'abcdef' };
 
     const logoutRes = { message: 'logout successful' };
 

@@ -1,7 +1,7 @@
 import { test, expect } from "playwright-test-coverage"
 
 test('purchase with login', async ({ page }) => {
-  await setUpServiceMock(page)  
+  await setUpServiceMock(page)
 
   await page.goto('/');
 
@@ -35,7 +35,7 @@ test('purchase with login', async ({ page }) => {
 });
 
 test('login then logout', async ({ page }) => {
-  await setUpServiceMock(page)  
+  await setUpServiceMock(page)
 
   await page.goto('/');
 
@@ -60,10 +60,10 @@ test('login then logout', async ({ page }) => {
   await page.getByRole('link', { name: 'Logout' }).click();
   await page.waitForURL('http://localhost:5173/');
 
-  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');  
+  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');
 });
 
-test('View About Page', async ({page}) => {
+test('View About Page', async ({ page }) => {
   await page.goto('/');
 
   await page.getByRole('link', { name: 'About' }).click();
@@ -73,7 +73,7 @@ test('View About Page', async ({page}) => {
   await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');
 })
 
-test('View 404 Page', async ({page}) => {
+test('View 404 Page', async ({ page }) => {
   await page.goto('/');
   await page.goto('thispagedefinitelydoesntexist');
 
@@ -81,7 +81,7 @@ test('View 404 Page', async ({page}) => {
   await expect(page.getByRole('main')).toContainText('It looks like we have dropped a pizza on the floor. Please try another page.');
 })
 
-test('Register New User', async ({page}) => {
+test('Register New User', async ({ page }) => {
   await setUpServiceMock(page)
 
   await page.goto('/');
@@ -100,7 +100,7 @@ test('Register New User', async ({page}) => {
   await expect(page.locator('#navbar-dark')).toContainText('Logout');
 })
 
-test('Check Out Docs and History pages', async ({page}) => {
+test('Check Out Docs and History pages', async ({ page }) => {
   await setUpServiceMock(page)
 
   await page.goto('/docs/factory')
@@ -112,7 +112,7 @@ test('Check Out Docs and History pages', async ({page}) => {
   await expect(page.getByRole('main')).toContainText('However, it was the Romans who truly popularized pizza');
 })
 
-test('admin functionality', async ({page}) => {
+test('admin functionality', async ({ page }) => {
   await setUpServiceMock(page)
 
   await page.goto('/')
@@ -141,7 +141,6 @@ test('admin functionality', async ({page}) => {
   await expect(page.getByRole('main')).toContainText('Keep the dough rolling and the franchises signing up.');
 
   // Close a Store
-  await page.goto('http://localhost:5173/admin-dashboard/close-franchise');
   await expect(page.getByRole('table')).toContainText('Close');
   await page.getByRole('row', { name: 'Spanish Fork 100 ₿ Close' }).getByRole('button').click();
   await expect(page.getByRole('main')).toContainText('Are you sure you want to close the PizzaCorp store Spanish Fork ?');
@@ -191,7 +190,7 @@ async function setUpServiceMock(page) {
     const userId = route.request().url().split('/').pop();
 
     userFranchiseRes[0].id = userId;
-    await route.fulfill({ json: userFranchiseRes});
+    await route.fulfill({ json: userFranchiseRes });
   })
 
   await page.route('*/**/api/auth', async (route) => {
@@ -202,14 +201,14 @@ async function setUpServiceMock(page) {
 
     const registerRes = {
       user: {
-          name: "Berry McCringle",
-          email: "berry@jwt.com",
-          roles: [
-              {
-                  role: "diner"
-              }
-          ],
-          id: 308
+        name: "Berry McCringle",
+        email: "berry@jwt.com",
+        roles: [
+          {
+            role: "diner"
+          }
+        ],
+        id: 308
       },
       token: "fedcba"
     };
@@ -246,23 +245,23 @@ async function setUpServiceMock(page) {
       },
       jwt: 'eyJpYXQ',
     };
-    const allOrdersRes = { 
-      dinerId: 4, 
+    const allOrdersRes = {
+      dinerId: 4,
       orders: [
-        { 
-          id: 1, 
-          franchiseId: 1, 
-          storeId: 1, 
-          date: '2024-06-05T05:14:40.000Z', 
+        {
+          id: 1,
+          franchiseId: 1,
+          storeId: 1,
+          date: '2024-06-05T05:14:40.000Z',
           items: [
-            { 
-              id: 1, 
-              menuId: 1, 
-              description: 'Veggie', 
-              price: 0.05 
+            {
+              id: 1,
+              menuId: 1,
+              description: 'Veggie',
+              price: 0.05
             }
-          ] 
-        }, 
+          ]
+        },
         {
           items: [
             { menuId: 1, description: 'Veggie', price: 0.0038 },
@@ -270,13 +269,13 @@ async function setUpServiceMock(page) {
           ],
           storeId: '4',
           franchiseId: 2,
-          date: '2024-06-05T0:14:40.000Z', 
+          date: '2024-06-05T0:14:40.000Z',
           id: 23,
         },
-      ], 
-      page: 1 
+      ],
+      page: 1
     }
-    
+
     if (route.request().method() === 'POST') {
       expect(route.request().postDataJSON()).toMatchObject(orderReq);
       await route.fulfill({ json: orderRes });
@@ -285,4 +284,110 @@ async function setUpServiceMock(page) {
       await route.fulfill({ json: allOrdersRes });
     }
   });
+
+
+  await page.route('https://pizza-factory.cs329.click/api/docs', async ( route ) => {
+    const docsRes = {
+      message: "welcome to JWT Pizza Factory",
+      version: "20240518.154317",
+      endpoints: [
+        {
+          method: "POST",
+          path: "/api/order",
+          requiresAuth: true,
+          description: "Create a JWT pizza WITH EXTRA PIZZAZZ",
+          example: "curl -X POST $host/api/order -H 'authorization: Bearer xyz' -d '{\"diner\":{\"id\":719,\"name\":\"j\",\"email\":\"j@jwt.com\"},\"order\":{\"items\":[{\"menuId\":1,\"description\":\"Veggie\",\"price\":0.0038}],\"storeId\":\"5\",\"franchiseId\":4,\"id\":278}}' -H 'Content-Type: application/json'",
+          response: {
+            jwt: "JWT here"
+          }
+        },
+        {
+          method: "POST",
+          path: "/api/order/verify",
+          requiresAuth: true,
+          description: "Verifies a pizza order",
+          example: "curl -X POST $host/api/order/verify -d '{\"jwt\":\"JWT here\"}' -H 'Content-Type: application/json'",
+          response: {
+            message: "valid",
+            payload: {
+              vendor: {
+                id: "student-netid",
+                name: "Student Name",
+                created: "2024-06-01T00:00:00Z",
+                validUntil: "2025-12-31T23:59:59Z"
+              },
+              diner: {
+                name: "joe"
+              },
+              order: {
+                pizzas: [
+                  "pep",
+                  "cheese"
+                ]
+              }
+            }
+          }
+        },
+        {
+          method: "GET",
+          path: "/.well-known/jwks.json",
+          requiresAuth: false,
+          description: "Get the JSON Web Key Set (JWKS) for independent JWT verification",
+          example: "curl -X POST $host/.well-known/jwks.json",
+          response: {
+            keys: [
+              {
+                kty: "RSA",
+                kid: "KID here",
+                n: "Key value here",
+                e: "AQAB"
+              }
+            ]
+          }
+        },
+        {
+          method: "POST",
+          path: "/api/vendor",
+          requiresAuth: true,
+          description: "Add a new vendor",
+          example: "curl -X POST $host/api/admin/vendor -H 'authorization: Bearer abcxyz' -H 'Content-Type:application/json' -d '{\"id\":\"byustudent27\", \"name\":\"cs student\"}'",
+          response: {
+            apiKey: "abcxyz",
+            vendor: {
+              id: "byustudent27",
+              name: "cs student",
+              created: "2024-06-14T16:43:23.754Z",
+              validUntil: "2024-12-14T16:43:23.754Z"
+            }
+          }
+        },
+        {
+          method: "PUT",
+          path: "/api/vendor/:vendorToken",
+          requiresAuth: true,
+          description: "Updates a vendor. Only supply the changed fields. Use null to remove a field.",
+          example: "curl -X POST $host/api/admin/vendor/111111 -H 'authorization: Bearer abcxyz' -H 'Content-Type:application/json' -d '{\"chaos\":{\"type\":\"throttle\"}}'",
+          response: {
+            vendor: {
+              id: "byustudent27",
+              name: "cs student",
+              website: "pizza.byucsstudent.click",
+              chaos: "fail"
+            }
+          }
+        },
+        {
+          method: "GET",
+          path: "/api/support/:vendorToken/report/:fixCode",
+          requiresAuth: false,
+          description: "Report a problem",
+          example: "curl -X POST $host/api/support/abcxyz/report/123",
+          response: {
+            message: "ticket status"
+          }
+        }
+      ]
+    }
+    await route.fulfill({ json: docsRes });
+  })
 }

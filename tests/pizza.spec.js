@@ -63,6 +63,53 @@ test('login then logout', async ({ page }) => {
   await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');  
 });
 
+test('View About Page', async ({page}) => {
+  await page.goto('/');
+
+  await page.getByRole('link', { name: 'About' }).click();
+  await expect(page.getByRole('main')).toContainText('The secret sauce');
+  await expect(page.getByRole('main')).toContainText('At JWT Pizza, our employees are more than just pizza makers.');
+  await page.getByRole('link', { name: 'home' }).click();
+  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');
+})
+
+test('View 404 Page', async ({page}) => {
+  await page.goto('/');
+  await page.goto('thispagedefinitelydoesntexist');
+
+  await expect(page.getByRole('heading')).toContainText('Oops');
+  await expect(page.getByRole('main')).toContainText('It looks like we have dropped a pizza on the floor. Please try another page.');
+})
+
+test('Register New User', async ({page}) => {
+  await setUpServiceMock(page)
+
+  await page.goto('/');
+
+  await page.getByRole('link', { name: 'Register' }).click();
+  await page.getByPlaceholder('Full name').click();
+  await page.getByPlaceholder('Full name').fill('Berry McCringle');
+  await page.getByPlaceholder('Email address').click();
+  await page.getByPlaceholder('Email address').fill('berry@jwt.com');
+  await page.getByPlaceholder('Email address').press('Tab');
+  await page.getByPlaceholder('Password').fill('password');
+  await page.getByRole('button', { name: 'Register' }).click();
+
+  await expect(page.getByRole('heading')).toContainText('The web\'s best pizza');
+  await expect(page.getByLabel('Global')).toContainText('BM');
+  await expect(page.locator('#navbar-dark')).toContainText('Logout');
+})
+
+test('Check Out Docs pages', async ({page}) => {
+  await setUpServiceMock(page)
+
+  await page.goto('http://localhost:5173/docs/factory')
+  await expect(page.getByRole('main')).toContainText('JWT Pizza API');
+  await expect(page.getByRole('main')).toContainText('🔐 [POST] /api/order');
+})
+
+// -------------------- Helper Functions --------------------
+
 async function setUpServiceMock(page) {
   await page.route('*/**/api/order/menu', async (route) => {
     const menuRes = [
@@ -94,13 +141,31 @@ async function setUpServiceMock(page) {
   await page.route('*/**/api/auth', async (route) => {
     const loginReq = { email: 'd@jwt.com', password: 'a' };
     const loginRes = { user: { id: 3, name: 'Kai Chen', email: 'd@jwt.com', roles: [{ role: 'diner' }] }, token: 'abcdef' };
+
     const logoutRes = { message: 'logout successful' };
+
+    const registerRes = {
+      user: {
+          name: "Berry McCringle",
+          email: "berry@jwt.com",
+          roles: [
+              {
+                  role: "diner"
+              }
+          ],
+          id: 308
+      },
+      token: "fedcba"
+    };
+
     const requestType = route.request().method();
     if (requestType === 'PUT') {
       expect(route.request().postDataJSON()).toMatchObject(loginReq);
       await route.fulfill({ json: loginRes });
     } else if (requestType === 'DELETE') {
-      await route.fulfill({ json: logoutRes})
+      await route.fulfill({ json: logoutRes })
+    } else if (requestType === 'POST') {
+      await route.fulfill({ json: registerRes })
     }
   });
 

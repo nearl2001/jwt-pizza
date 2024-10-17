@@ -5,7 +5,6 @@ config.js
 coverage
 dist
 **/.vite
-.env*
 node_modules/
 /test-results/
 /playwright-report/

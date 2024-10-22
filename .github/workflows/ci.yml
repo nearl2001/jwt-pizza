@@ -10,7 +10,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: stage
       url: https://pizza.nikolasearlpizzashop.click
     outputs:
       version: ${{ steps.set_version.outputs.version }}
@@ -63,7 +63,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: stage
       url: https://pizza.nikolasearlpizzashop.click
     env:
       version: ${{needs.build.outputs.version}}

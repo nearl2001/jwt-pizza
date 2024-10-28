@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: stage
-      url: https://pizza.nikolasearlpizzashop.click
+      url: https://stage-pizza.nikolasearlpizzashop.click
     outputs:
       version: ${{ steps.set_version.outputs.version }}
     steps:
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: stage
-      url: https://pizza.nikolasearlpizzashop.click
+      url: https://stage-pizza.nikolasearlpizzashop.click
     env:
       version: ${{needs.build.outputs.version}}
     steps:
